@@ -1,0 +1,6 @@
+# 依赖目录（首次使用时 npm install 安装）
+node_modules/
+
+# 临时文件
+*.log
+*.tmp
