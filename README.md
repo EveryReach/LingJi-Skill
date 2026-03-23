@@ -147,7 +147,7 @@ curl -H "Authorization: Bearer {tenant_access_token}" \
 | B站 | yt-dlp + 直连绕代理 | ✅ 已验证 |
 | YouTube | yt-dlp 字幕/音频 | ✅ 已验证 |
 | X/Twitter | yt-dlp + Gemini 转录 | ✅ 已验证 |
-| 小红书 | yt-dlp + cookies | ⚠️ 待验证 |
+| 小红书 | 移动端页面 + JSON 解析 | ✅ 已验证 |
 | 微博/知乎/快手 | yt-dlp + 直连 | ⚠️ 待验证 |
 
 ### 网页文章

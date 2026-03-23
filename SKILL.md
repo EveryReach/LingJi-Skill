@@ -317,6 +317,26 @@ Jina Reader 会自动处理：广告过滤、正文提取、格式化。
 1. yt-dlp + `--proxy ""`（国内平台）
 2. yt-dlp + `--cookies-from-browser chrome`（需要登录的平台）
 
+### 小红书 ✅（移动端页面 + JSON 解析）
+
+**为什么不用 yt-dlp：** 小红书 yt-dlp extractor 经常失效，且需要浏览器 cookies。
+
+**备用方案：移动端页面 + __INITIAL_STATE__ JSON**
+
+```
+访问移动端页面（带 Android UA）
+  → 从 HTML 提取 __INITIAL_STATE__ JSON
+  → 解析 noteData 获取标题、作者、描述、视频 URL
+  → 视频类型：下载视频 → ffmpeg 提取音频 → Gemini 转录
+  → 图文类型：直接用 desc 走 Gemini 总结
+```
+
+**关键点：**
+- URL 格式：`xiaohongshu.com/explore/{noteId}` 或 `/discovery/item/{noteId}`
+- 移动端 UA：`Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36`
+- 视频 URL 在 `noteData.video.media.stream.h264[0].masterUrl`
+- 需要解码 Unicode 转义：`\u002F` → `/`
+
 ---
 
 ## 平台支持速查表
@@ -326,9 +346,10 @@ Jina Reader 会自动处理：广告过滤、正文提取、格式化。
 | 抖音 | 两步下载法（移动端页面→CDN） | 无 | ✅ 已验证 |
 | B站 | yt-dlp + 直连绕代理 | — | ✅ 已验证 |
 | YouTube | yt-dlp 字幕/音频 | — | ✅ 已验证 |
+| X/Twitter | yt-dlp + Gemini 转录 | — | ✅ 已验证 |
 | 微信公众号 | 本地直连抓取 | — | ✅ 已验证 |
+| 小红书 | 移动端页面 + JSON 解析 | yt-dlp + cookies | ✅ 已验证 |
 | 普通网页 | Jina Reader | — | ✅ 已验证 |
-| 小红书 | yt-dlp + cookies | — | ⚠️ 待验证 |
 | 微博/知乎/快手 | yt-dlp + 直连 | — | ⚠️ 待验证 |
 
 ---

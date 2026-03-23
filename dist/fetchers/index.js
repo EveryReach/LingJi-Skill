@@ -3,6 +3,7 @@ import { dumpInfo, parseSubtitleText } from "../lib/ytdlp.js";
 import { transcribeAudio, transcribeFromFile, summarizeText } from "../lib/gemini.js";
 import { fetchGeneric } from "./generic.js";
 import { extractAwemeId, fetchDouyinInfo, downloadDouyinAudio } from "../lib/douyin.js";
+import { extractNoteId, fetchXiaohongshu } from "../lib/xiaohongshu.js";
 const MAX_CONTENT_LENGTH = 48_000;
 function detectPlatform(url) {
     const host = url.toLowerCase();
@@ -60,6 +61,12 @@ export async function fetchUrl(url) {
         if (dyResult) {
             console.error("[OpenClaw] yt-dlp 失败，尝试抖音备用方案...");
             return fetchDouyinFallback(resolved, dyResult.id, dyResult.type);
+        }
+        // 小红书备用：移动端页面 + __INITIAL_STATE__ JSON
+        const xhsNoteId = extractNoteId(resolved);
+        if (xhsNoteId) {
+            console.error("[OpenClaw] yt-dlp 失败，尝试小红书备用方案...");
+            return fetchXiaohongshuFallback(resolved, xhsNoteId);
         }
         return fetchArticle(resolved);
     }
@@ -208,6 +215,34 @@ async function fetchDouyinFallback(url, awemeId, contentType) {
         text: `${header}\n\n⚠️ 抖音内容抓取失败。该内容可能有访问限制。`,
         title, author, contentType: contentType === "note" ? "article" : "video", platform, wordCount: 0,
     };
+}
+// ── 小红书备用方案 ────────────────────────────────────────────────────────────────
+async function fetchXiaohongshuFallback(url, noteId) {
+    const result = await fetchXiaohongshu(url);
+    const platform = "小红书";
+    if (!result) {
+        return {
+            text: `标题：小红书笔记 ${noteId}\nURL：${url}\n平台：${platform}\n\n⚠️ 小红书内容抓取失败。该内容可能有访问限制。`,
+            title: `小红书笔记 ${noteId}`, author: "", contentType: "article", platform, wordCount: 0,
+        };
+    }
+    let header = `标题：${result.title}\nURL：${url}`;
+    if (result.author)
+        header += `\n作者：${result.author}`;
+    header += `\n平台：${platform}`;
+    // 图文笔记
+    if (result.contentType === "article") {
+        const geminiSummary = await summarizeText(result.content, result.title, result.author);
+        if (geminiSummary) {
+            const fullText = `${header}\n类型：图文笔记\n\n${geminiSummary}\n\n---\n\n## 原文\n\n${result.content}`;
+            return { text: fullText, title: result.title, author: result.author, contentType: "article", platform, wordCount: result.wordCount };
+        }
+        const fullText = `${header}\n类型：图文笔记${GUIDE}\n\n---\n\n${result.content}`;
+        return { text: fullText, title: result.title, author: result.author, contentType: "article", platform, wordCount: result.wordCount };
+    }
+    // 视频
+    const fullText = `${header}\n类型：视频\n字幕来源：Gemini 音频转录\n\n${result.content}`;
+    return { text: fullText, title: result.title, author: result.author, contentType: "video", platform, wordCount: result.wordCount };
 }
 // ── 微信公众号直接抓取（不走 Jina，本地直连） ───────────────────────────────────
 async function fetchWechatArticle(url) {
