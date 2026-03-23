@@ -2,16 +2,27 @@
 
 智能内容抓取与知识提炼工具，作为 Claude Code Skill 使用。支持 1800+ 视频平台（YouTube、B站、抖音、小红书、微博等）和网页文章，自动提取字幕或通过 Gemini 音频转录，生成结构化知识笔记并保存到飞书多维表格。
 
-## 快速开始
+## 安装
 
-### 1. 安装依赖
+### 方式一：npx 一键安装（推荐）
 
 ```bash
-cd ~/.claude/skills/lingji
-npm install --production
+npx skills add https://github.com/EveryReach/LingJi-Skill -g -y
+cd ~/.claude/skills/lingji && npm install --production
 ```
 
-### 2. 安装 ffmpeg
+安装完成后，重启 Claude Code 即可使用。
+
+### 方式二：手动安装
+
+```bash
+git clone https://github.com/EveryReach/LingJi-Skill.git ~/.claude/skills/lingji
+cd ~/.claude/skills/lingji && npm install --production
+```
+
+## 前置要求
+
+### ffmpeg
 
 **Windows:**
 ```powershell
@@ -30,17 +41,17 @@ sudo apt install ffmpeg  # Debian/Ubuntu
 sudo dnf install ffmpeg  # Fedora
 ```
 
-### 3. 配置环境变量
+## 配置环境变量
 
-#### 获取 Gemini API Key
+### 获取 Gemini API Key
 前往 https://aistudio.google.com/apikey 创建 API Key
 
-#### 创建飞书应用
+### 创建飞书应用
 1. 前往 https://open.feishu.cn/app 创建「企业自建应用」
 2. 在「权限管理」中开启以下权限（见下方详细说明）
 3. 发布应用版本
 
-#### 创建飞书多维表格
+### 创建飞书多维表格
 创建一个多维表格，添加以下字段：
 
 | 字段名 | 类型 |
@@ -57,7 +68,7 @@ sudo dnf install ffmpeg  # Fedora
 
 然后在表格右上角「...」→ 添加应用为协作者，给编辑权限。
 
-#### 设置环境变量
+### 设置环境变量
 
 **Windows (PowerShell):**
 ```powershell
@@ -78,7 +89,7 @@ echo 'export FEISHU_BITABLE_TABLE_ID="tblxxx"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### 4. 使用
+## 使用
 
 在 Claude Code 中直接使用：
 
@@ -192,10 +203,10 @@ lingji/
 │   ├── cli.js
 │   ├── fetchers/
 │   └── lib/
-│       ├── douyin.ts    # 抖音两步下载法
-│       ├── ytdlp.ts     # yt-dlp 封装
-│       ├── gemini.ts    # Gemini 转录/总结
-│       └── feishu.ts    # 飞书 API
+│       ├── douyin.js     # 抖音两步下载法
+│       ├── ytdlp.js      # yt-dlp 封装
+│       ├── gemini.js     # Gemini 转录/总结
+│       └── feishu.js     # 飞书 API
 └── node_modules/
 ```
 
